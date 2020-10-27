@@ -3,7 +3,7 @@ from torch import optim
 import torch.nn.functional as F
 from tqdm import tqdm
 from params import *
-from data import DatasetIterator
+from data import DatasetIterator, TrainingResult
 
 
 def evl(net, batch_size, dataset):

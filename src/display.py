@@ -25,17 +25,18 @@ def display(net, batch, show=True):
         return f
 
 
-def display_loss(config, epochs, show=True):
+def display_loss(config, show=True):
     '''
     Displays all losses given all epochs
-    - config : A list of [name, losses]
+    - config : A list of TrainingResult
     - Returns the figure
     '''
     f, ax = plt.subplots()
 
-    for name, loss in config:
-        ax.plot([i * epochs / (len(loss) - 1) for i in range(len(loss))],
-                loss, label=name)
+    for result in config:
+        ax.plot([i * result.epochs / (len(result.losses) - 1) \
+                for i in range(len(result.losses))],
+                result.losses, label=result.name)
 
     ax.set_xlabel('Epochs')
     ax.set_ylabel('Loss')
@@ -47,10 +48,10 @@ def display_loss(config, epochs, show=True):
     return f
 
 
-
 # TODO : rm
 if __name__ == '__main__':
+    from data import TrainingResult
+
     display_loss([
-        ['Net', [2, 1.8, 1.4, 1.45, 1.3, 1.26, 1.25]],
-        ['Net2', [3, 1.9, 1.4, 1.2, 1, .26, .25]],
-        ], 3)
+        TrainingResult('Net', 0, 0, 3, [2, 1.8, 1.4, 1.45, 1.3, 1.26, 1.25]),
+        TrainingResult('Net2', 0, 0, 2, [3, 1.9, 1.4, 1.2, 1, .26, .25])])

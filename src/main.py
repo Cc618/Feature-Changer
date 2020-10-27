@@ -9,7 +9,7 @@ except:
     print('Cannot import user config (should be at src/user.py), check README')
 from params import *
 from net import *
-from data import Dataset
+from data import Dataset, TrainingResult
 from train import *
 from display import *
 
@@ -25,18 +25,32 @@ transform = transforms.Compose([transforms.Resize((img_size, img_size)),
 dataset = Dataset(n_test, eval_ratio, transform)
 
 # Net
-net = Net2().to(device)
+# net = Net2().to(device)
 
-if save_path != '' and os.path.exists(save_path):
-    net.load_state_dict(T.load(save_path))
-    print('Loaded model at', save_path)
-
-
-
-
+# if save_path != '' and os.path.exists(save_path):
+#     net.load_state_dict(T.load(save_path))
+#     print('Loaded model at', save_path)
 
 # Train
-# train(net, 1e-3, 1, 10, dataset, save_path)
+
+
+# Tweak
+results = [
+        TrainingResult('Net2, lr=2e-3, batch_size=256',
+            lr=1e-3, epochs=1, batch_size=256),
+        TrainingResult('Net2, lr=1e-3, batch_size=512',
+            lr=1e-3, epochs=1, batch_size=512),
+    ]
+
+for r in results:
+    net = Net2().to(device)
+    r.losses = train(net, r.lr, r.epochs, r.batch_size, dataset)
+
+display_loss(results)
+
+
+
+
 # evl(net, 0, dataset)
 # tweaks = [
 #         (2e-3, 1024),
@@ -55,13 +69,13 @@ if save_path != '' and os.path.exists(save_path):
 # print(tune_stats(net, 1, tweaks, dataset))
 
 
-# TODO : Move to a separate module (display)
-# Test
-net.eval()
-dataset.mode = 'test'
-testloader = T.utils.data.DataLoader(dataset, batch_size=n_tests,
-        shuffle=False)
-batch = next(iter(testloader))[:n_tests]
-batch = batch.to(device)
+# # TODO : Move to a separate module (display)
+# # Test
+# net.eval()
+# dataset.mode = 'test'
+# testloader = T.utils.data.DataLoader(dataset, batch_size=n_tests,
+#         shuffle=False)
+# batch = next(iter(testloader))[:n_tests]
+# batch = batch.to(device)
 
-display(net, batch)
+# display(net, batch)

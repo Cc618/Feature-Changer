@@ -95,7 +95,7 @@ class TrainingResult:
         with open(path, 'rb') as f:
             return pickle.load(f)
 
-    def __init__(self, name, lr, batch_size, epochs, losses):
+    def __init__(self, name, lr, batch_size, epochs, losses=[]):
         self.name = name
         self.lr = lr
         self.batch_size = batch_size
