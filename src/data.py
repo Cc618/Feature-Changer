@@ -1,3 +1,4 @@
+import pickle
 import pandas as pd
 from PIL import Image
 from torch.utils import data
@@ -82,6 +83,32 @@ class Dataset(data.Dataset):
         Returns all images matching the attribute name (in all sets).
         '''
         return self.attrs.loc[self.attrs[attr] == 1]
+
+
+class TrainingResult:
+    '''
+    Used to store training information useful to establish stats of a training
+    session
+    '''
+    @staticmethod
+    def load(path):
+        with open(path, 'rb') as f:
+            return pickle.load(f)
+
+    def __init__(self, name, lr, batch_size, epochs, losses):
+        self.name = name
+        self.lr = lr
+        self.batch_size = batch_size
+        self.epochs = epochs
+        self.losses = losses
+
+    def __repr__(self):
+        return f'{self.name} : lr={self.lr}, batch_size={self.batch_size}' + \
+            f', epochs={self.epochs}, last_loss={self.losses[-1]}'
+
+    def save(self, path):
+        with open(path, 'wb') as f:
+            pickle.dump(self, f)
 
 
 # TODO : Change source file
