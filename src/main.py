@@ -3,7 +3,6 @@
 import os
 import torch as T
 from torchvision import transforms
-import matplotlib.pyplot as plt
 try:
     import user
 except:
@@ -12,23 +11,7 @@ from params import *
 from net import *
 from data import Dataset
 from train import *
-
-
-# TODO : Move
-def display(net, batch):
-    with T.no_grad():
-        y = net(batch)
-
-        _, axarr = plt.subplots(2, len(batch))
-
-        # Grid display
-        toplt = lambda img: img.detach().permute(1, 2, 0).cpu() \
-                .squeeze().numpy()
-        for i in range(len(batch)):
-            axarr[0, i].imshow(toplt(batch[i]))
-            axarr[1, i].imshow(toplt(y[i]).clip(0, 1), vmin=0, vmax=1)
-
-        plt.show()
+from display import *
 
 
 # TODO : Move
@@ -59,15 +42,16 @@ if save_path != '' and os.path.exists(save_path):
 # print(tune_stats(net, 1, tweaks, dataset))
 
 
+# TODO : Move to a separate module (display)
+# Test
+net.eval()
+dataset.mode = 'test'
+testloader = T.utils.data.DataLoader(dataset, batch_size=n_tests,
+        shuffle=False)
+batch = next(iter(testloader))[:n_tests]
+batch = batch.to(device)
 
-# # Test
-# net.eval()
-# dataset.mode = 'test'
-# testloader = T.utils.data.DataLoader(dataset, batch_size=n_tests,
-#         shuffle=False)
-# # batch, _ = next(iter(testloader))[:n_tests]
-# batch = next(iter(testloader))[:n_tests]
-# print(batch.shape)
-# batch = batch.to(device)
-# display(net, batch)
-
+print(1)
+f = display(net, batch, show=False)
+print(2)
+f.savefig('tst/tst.png')
