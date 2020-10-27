@@ -48,8 +48,9 @@ class Dataset(data.Dataset):
 
         nottest = len(imgs) - n_test
         self.test_set = imgs[:n_test].tolist()
-        self.eval_set = imgs[n_test : int(nottest * eval_ratio)].tolist()
-        self.train_set = imgs[int(nottest * eval_ratio):].tolist()
+        self.eval_set = imgs[n_test : n_test + int(nottest * eval_ratio)] \
+                .tolist()
+        self.train_set = imgs[n_test + int(nottest * eval_ratio):].tolist()
 
         # Either train, eval or test
         self.mode = 'train'

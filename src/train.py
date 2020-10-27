@@ -39,7 +39,7 @@ def evl(net, batch_size, dataset):
     return loss / (batch + 1)
 
 
-def train(net, lr, epochs, batch_size, dataset, save_path):
+def train(net, lr, epochs, batch_size, dataset, save_path=''):
     '''
     Training session
     - Returns losses (for each batch)
@@ -80,3 +80,23 @@ def train(net, lr, epochs, batch_size, dataset, save_path):
         print('Saved model at', save_path)
 
     return losses
+
+
+def tune_stats(net, epochs, hyperparams, dataset, eval_batch_size=0):
+    '''
+    Returns the list of statistics for each configuration
+    - hyperparams : List of (lr, batch_size)
+    - Returns a list for each config of evaluation error
+    '''
+    # TODO : Add time
+    stats = []
+    for i, (lr, batch_size) in enumerate(hyperparams):
+        print(f'## Config {i}')
+
+        train(net, lr, epochs, batch_size, dataset)
+        loss = evl(net, eval_batch_size, dataset)
+
+        print('> Eval loss :', loss)
+        stats.append(loss)
+
+    return stats

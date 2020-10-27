@@ -11,7 +11,7 @@ except:
 from params import *
 from net import *
 from data import Dataset
-from train import train, evl
+from train import *
 
 
 # TODO : Move
@@ -34,7 +34,7 @@ def display(net, batch):
 # TODO : Move
 save_path = '' # 'data/net2'
 eval_ratio = 1 / 20
-n_test = 8
+n_test = 190000
 
 # Data
 transform = transforms.Compose([transforms.Resize((img_size, img_size)),
@@ -50,7 +50,13 @@ if save_path != '' and os.path.exists(save_path):
 
 # Train
 # train(net, 1e-3, 1, 10, dataset, save_path)
-evl(net, 0, dataset)
+# evl(net, 0, dataset)
+# tweaks = [
+#         (2e-3, 1024),
+#         (1e-3, 2048),
+#         (1e-3, 512),
+#     ]
+# print(tune_stats(net, 1, tweaks, dataset))
 
 
 
