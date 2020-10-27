@@ -2,9 +2,8 @@ import torch as T
 from torch import optim
 import torch.nn.functional as F
 from tqdm import tqdm
-# TODO : Rm
-from cc.ai import DatasetIterator
 from params import *
+from data import DatasetIterator
 
 
 def evl(net, batch_size, dataset):

@@ -38,30 +38,30 @@ if save_path != '' and os.path.exists(save_path):
 # Train
 # train(net, 1e-3, 1, 10, dataset, save_path)
 # evl(net, 0, dataset)
-tweaks = [
-        (2e-3, 1024),
-        (1e-3, 2048),
-        (1e-3, 512),
-    ]
-losses = [[2, 1, .5], [3, 2, .3], [5, 1, 2]]
-# Display losses etc
-tweaks = [
-        (2e-3, 1024),
-        (1e-3, 2048),
-        (1e-3, 512),
-    ]
-display_loss([(f'lr={lr} batch_size={bs}', loss) \
-    for (lr, bs), loss in zip(tweaks, losses)], 3)
+# tweaks = [
+#         (2e-3, 1024),
+#         (1e-3, 2048),
+#         (1e-3, 512),
+#     ]
+# losses = [[2, 1, .5], [3, 2, .3], [5, 1, 2]]
+# # Display losses etc
+# tweaks = [
+#         (2e-3, 1024),
+#         (1e-3, 2048),
+#         (1e-3, 512),
+#     ]
+# display_loss([(f'lr={lr} batch_size={bs}', loss) \
+#     for (lr, bs), loss in zip(tweaks, losses)], 3)
 # print(tune_stats(net, 1, tweaks, dataset))
 
 
 # TODO : Move to a separate module (display)
-# # Test
-# net.eval()
-# dataset.mode = 'test'
-# testloader = T.utils.data.DataLoader(dataset, batch_size=n_tests,
-#         shuffle=False)
-# batch = next(iter(testloader))[:n_tests]
-# batch = batch.to(device)
+# Test
+net.eval()
+dataset.mode = 'test'
+testloader = T.utils.data.DataLoader(dataset, batch_size=n_tests,
+        shuffle=False)
+batch = next(iter(testloader))[:n_tests]
+batch = batch.to(device)
 
-# # f = display(net, batch, show=False)
+display(net, batch)

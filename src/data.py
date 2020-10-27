@@ -2,36 +2,32 @@ import pandas as pd
 from PIL import Image
 from torch.utils import data
 from torchvision.transforms import ToTensor
-from params import dataset_path
+from user import dataset_path
 
 attr_path = dataset_path + '/list_attr_celeba.csv'
 # TODO : Good path ?
 img_path = dataset_path + '/img_align_celeba/img_align_celeba'
 
 
+class DatasetIterator:
+    '''
+    Used to have a nice progress bar with tqdm
+    Yields batches from loader "epochs" times
+    '''
+    def __init__(self, loader, epochs):
+        self.loader = loader
+        self.epochs = epochs
 
+    def __len__(self):
+        return len(self.loader) * self.epochs
 
-# # A class to create a pytorch dataset from a directory of image files
-
-# from glob import glob
-# from PIL import Image
-# from torch.utils.data import Dataset
-# from cc import const
-
-# class ImageDataset(Dataset):
-#     def __init__(self, images_dir, transform=None):
-#         self.images_dir = images_dir
-#         self.transform = transform
-#         self.items = list(glob(self.images_dir + '/*'))
-
-#     def __len__(self):
-#         return len(self.items)
-
-#     def __getitem__(self, index):
-#         img = Image.open(self.items[index])
-
-#         return img if self.transform is None else self.transform(img)
-
+    def __iter__(self):
+        '''
+        Returns (epoch, batch), data
+        '''
+        for e in range(self.epochs):
+            for batch, data in enumerate(self.loader):
+                yield (e, batch), data
 
 
 class Dataset(data.Dataset):
@@ -86,25 +82,6 @@ class Dataset(data.Dataset):
         Returns all images matching the attribute name (in all sets).
         '''
         return self.attrs.loc[self.attrs[attr] == 1]
-
-    # def split_data(n_test, eval_ratio):
-    #     '''
-    #     Returns the list of file paths with n_tests test files, #files * eval_ratio
-    #     eval files and remaining files as training set
-    #     - Returns (test, eval, train)
-    #     * Images are not shuffled
-    #     '''
-    #     df = pd.read_csv(attr_path)
-    #     imgs = df['image_id']
-
-    #     assert len(imgs) > n_test + 1, 'Not enough dataset files'
-
-    #     nottest = len(imgs) - n_test
-    #     return imgs[:n_test], imgs[n_test : int(nottest * eval_ratio)], \
-    #             imgs[int(nottest * eval_ratio):]
-
-
-    # def get_attr_imgs(
 
 
 # TODO : Change source file
