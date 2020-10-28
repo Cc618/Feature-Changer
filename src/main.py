@@ -17,7 +17,7 @@ from display import *
 # TODO : Move
 save_path = '' # 'data/net2'
 eval_ratio = 1 / 20
-n_test = 190000
+n_test = 180000
 
 # Data
 transform = transforms.Compose([transforms.Resize((img_size, img_size)),
@@ -36,14 +36,13 @@ dataset = Dataset(n_test, eval_ratio, transform)
 
 # Tweak
 results = [
-        TrainingResult('Net2, lr=2e-3, batch_size=256',
-            lr=1e-3, epochs=1, batch_size=256),
-        TrainingResult('Net2, lr=1e-3, batch_size=512',
-            lr=1e-3, epochs=1, batch_size=512),
+        TrainingResult('Net3,' +
+            ' lr=1e-3, batch_size=256'
+            , lr=1e-3, batch_size=256, epochs=1),
     ]
 
 for r in results:
-    net = Net2().to(device)
+    net = Net3().to(device)
     r.losses = train(net, r.lr, r.epochs, r.batch_size, dataset)
 
 display_loss(results)
@@ -69,13 +68,13 @@ display_loss(results)
 # print(tune_stats(net, 1, tweaks, dataset))
 
 
-# # TODO : Move to a separate module (display)
-# # Test
-# net.eval()
-# dataset.mode = 'test'
-# testloader = T.utils.data.DataLoader(dataset, batch_size=n_tests,
-#         shuffle=False)
-# batch = next(iter(testloader))[:n_tests]
-# batch = batch.to(device)
+# TODO : Move to a separate module (display)
+# Test
+net.eval()
+dataset.mode = 'test'
+testloader = T.utils.data.DataLoader(dataset, batch_size=n_tests,
+        shuffle=False)
+batch = next(iter(testloader))[:n_tests]
+batch = batch.to(device)
 
-# display(net, batch)
+display(net, batch)

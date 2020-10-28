@@ -74,9 +74,9 @@ def train(net, lr, epochs, batch_size, dataset, save_path=''):
 
         bar.set_postfix({'loss': loss.item()})
 
-    if save_path != '':
-        T.save(net.state_dict(), save_path)
-        print('Saved model at', save_path)
+        if save_path != '':
+            T.save(net.state_dict(), save_path)
+            print('Saved model at', save_path)
 
     return losses
 
