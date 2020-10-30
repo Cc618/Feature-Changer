@@ -88,42 +88,42 @@ if not os.path.exists(features_path):
     # or use all_attrs = dataset.get_attr_list()
     all_attrs = [
         'Blond_Hair',
-        # 'Eyeglasses',
-        # 'Heavy_Makeup',
-        # 'Male',
-        # 'Mustache',
-        # 'Smiling',
-        # 'Wearing_Hat',
-        # 'Young',
+        'Eyeglasses',
+        'Heavy_Makeup',
+        'Male',
+        'Mustache',
+        'Smiling',
+        'Wearing_Hat',
+        'Young',
     ]
     attrs = gen_attrs(net, all_attrs, dataset, z_size, batch_size=512)
-    # TODO : T.save(attrs, features_path)
+    T.save(attrs, features_path)
     print('Saved feature vectors')
 else:
     attrs = T.load(features_path)
     print('Loaded feature vectors')
 
 
-# Add blond hairs
+# Add all features within attr and show as a grid the result
 net.eval()
 dataset.mode = 'test'
 with T.no_grad():
-    feature = attrs['Blond_Hair']
-
     testloader = T.utils.data.DataLoader(dataset, batch_size=n_test,
             shuffle=False)
     batch = next(iter(testloader))
     batch = batch.to(device)
 
-    # Encode, add feature, decode
-    latent = net.encode(batch)
-    latent += feature
-    generated = net.decode(latent)
+    # Add all features
+    grid = [batch]
+    for category, feature in attrs.items():
+        # Encode, add feature, decode
+        latent = net.encode(batch)
+        latent += feature
+        generated = net.decode(latent)
 
-    print(feature.mean().item(), feature.std().item())
-    print(batch.mean().item(), batch.std().item())
+        grid.append(generated)
 
-    display_grid([batch, generated])
+    display_grid(grid)
 
 
 # # Random batch
