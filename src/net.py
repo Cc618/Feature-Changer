@@ -4,6 +4,9 @@ import torch.nn.functional as F
 from params import z_size, img_size, img_depth
 
 class Debug(nn.Module):
+    '''
+    Debug shape layer
+    '''
     def __init__(self):
         super().__init__()
 
@@ -22,7 +25,7 @@ class Net1(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.encoder = nn.Sequential(
+        self.encode = nn.Sequential(
                 nn.Conv2d(img_depth, 32, 4, 2),
                 nn.BatchNorm2d(32),
                 nn.LeakyReLU(.2),
@@ -36,7 +39,7 @@ class Net1(nn.Module):
                 nn.LeakyReLU(.2),
             )
 
-        self.decoder = nn.Sequential(
+        self.decode = nn.Sequential(
                 nn.Upsample(scale_factor=2),
 
                 nn.Conv2d(4, 32, 2),
@@ -52,8 +55,8 @@ class Net1(nn.Module):
             )
 
     def forward(self, x):
-        z = self.encoder(x)
-        y = self.decoder(z)
+        z = self.encode(x)
+        y = self.decode(z)
 
         return y
 
@@ -118,16 +121,23 @@ class Net2(nn.Module):
             nn.Conv2d(ndf, nc, 3, padding=1),
         )
 
-    def forward(self, x):
-        # Encode
+    def encode(self, x):
         z = self.encoder_conv(x)
         z = z.view(z.size(0), -1)
         z = self.encoder_dense(z)
 
-        # Decode
+        return z
+
+    def decode(self, z):
         y = self.decoder_dense(z)
         y = y.view(-1, self.ndf*8, self.out_size, self.out_size)
         y = self.decoder_conv(y)
+
+        return y
+
+    def forward(self, x):
+        z = self.encode(x)
+        y = self.decode(z)
 
         return y
 
@@ -182,15 +192,31 @@ class Net3(nn.Module):
             nn.Conv2d(ndf, nc, 3, padding=1),
         )
 
-    def forward(self, x):
-        # Encode
+#     def forward(self, x):
+#         # Encode
+#         z = self.encoder_conv(x)
+#         # Shape : 128x4x4
+#         z = z.view(z.size(0), -1)
+#         z = self.encoder_dense(z)
+#         # Shape : 100
+
+#         # Decode
+#         y = self.decoder_dense(z)
+#         # Shape : 2048
+#         y = y.view(-1, self.ndf*4, self.out_size, self.out_size)
+#         y = self.decoder_conv(y)
+
+#         return y
+
+    def encode(self, x):
         z = self.encoder_conv(x)
         # Shape : 128x4x4
         z = z.view(z.size(0), -1)
         z = self.encoder_dense(z)
-        # Shape : 100
 
-        # Decode
+        return z
+
+    def decode(self, z):
         y = self.decoder_dense(z)
         # Shape : 2048
         y = y.view(-1, self.ndf*4, self.out_size, self.out_size)
@@ -198,3 +224,8 @@ class Net3(nn.Module):
 
         return y
 
+    def forward(self, x):
+        z = self.encode(x)
+        y = self.decode(z)
+
+        return y

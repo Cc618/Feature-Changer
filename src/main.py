@@ -12,12 +12,14 @@ from net import *
 from data import Dataset, TrainingResult
 from train import *
 from display import *
+from stats import *
 
 
 # TODO : Move
-save_path = '' # 'data/net2'
+save_path = 'data/net3'
+features_path = 'data/features'
 eval_ratio = 1 / 20
-n_test = 180000
+n_test = 10
 
 # Data
 transform = transforms.Compose([transforms.Resize((img_size, img_size)),
@@ -25,27 +27,27 @@ transform = transforms.Compose([transforms.Resize((img_size, img_size)),
 dataset = Dataset(n_test, eval_ratio, transform)
 
 # Net
-# net = Net2().to(device)
+net = Net3().to(device)
 
-# if save_path != '' and os.path.exists(save_path):
-#     net.load_state_dict(T.load(save_path))
-#     print('Loaded model at', save_path)
+if save_path != '' and os.path.exists(save_path):
+    net.load_state_dict(T.load(save_path))
+    print('Loaded model from', save_path)
 
-# Train
+# # Train
 
 
-# Tweak
-results = [
-        TrainingResult('Net3,' +
-            ' lr=1e-3, batch_size=256'
-            , lr=1e-3, batch_size=256, epochs=1),
-    ]
+# # Tweak
+# results = [
+#         TrainingResult('Net3,' +
+#             ' lr=1e-3, batch_size=256'
+#             , lr=1e-3, batch_size=256, epochs=1),
+#     ]
 
-for r in results:
-    net = Net3().to(device)
-    r.losses = train(net, r.lr, r.epochs, r.batch_size, dataset)
+# for r in results:
+#     net = Net3().to(device)
+#     r.losses = train(net, r.lr, r.epochs, r.batch_size, dataset)
 
-display_loss(results)
+# display_loss(results)
 
 
 
@@ -68,13 +70,66 @@ display_loss(results)
 # print(tune_stats(net, 1, tweaks, dataset))
 
 
-# TODO : Move to a separate module (display)
-# Test
+# # TODO : Move to a separate module (display)
+# # Test
+# net.eval()
+# dataset.mode = 'test'
+# testloader = T.utils.data.DataLoader(dataset, batch_size=n_test,
+#         shuffle=False)
+# batch = next(iter(testloader))
+# batch = batch.to(device)
+
+# display(net, batch)
+
+
+# Generate attribute vectors
+if not os.path.exists(features_path):
+    # Can be chosen via dataset.list_attrs()
+    # or use all_attrs = dataset.get_attr_list()
+    all_attrs = [
+        'Blond_Hair',
+        # 'Eyeglasses',
+        # 'Heavy_Makeup',
+        # 'Male',
+        # 'Mustache',
+        # 'Smiling',
+        # 'Wearing_Hat',
+        # 'Young',
+    ]
+    attrs = gen_attrs(net, all_attrs, dataset, z_size, batch_size=512)
+    # TODO : T.save(attrs, features_path)
+    print('Saved feature vectors')
+else:
+    attrs = T.load(features_path)
+    print('Loaded feature vectors')
+
+
+# Add blond hairs
 net.eval()
 dataset.mode = 'test'
-testloader = T.utils.data.DataLoader(dataset, batch_size=n_tests,
-        shuffle=False)
-batch = next(iter(testloader))[:n_tests]
-batch = batch.to(device)
+with T.no_grad():
+    feature = attrs['Blond_Hair']
 
-display(net, batch)
+    testloader = T.utils.data.DataLoader(dataset, batch_size=n_test,
+            shuffle=False)
+    batch = next(iter(testloader))
+    batch = batch.to(device)
+
+    # Encode, add feature, decode
+    latent = net.encode(batch)
+    latent += feature
+    generated = net.decode(latent)
+
+    print(feature.mean().item(), feature.std().item())
+    print(batch.mean().item(), batch.std().item())
+
+    display_grid([batch, generated])
+
+
+# # Random batch
+# net.eval()
+# dataset.mode = 'test'
+# with T.no_grad():
+#     batch = T.randn([n_test, z_size], device=device)
+#     generated = net.decode(batch)
+#     display_grid([generated * .4])

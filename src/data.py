@@ -48,8 +48,9 @@ class Dataset(data.Dataset):
         self.eval_set = imgs[n_test : n_test + int(nottest * eval_ratio)] \
                 .tolist()
         self.train_set = imgs[n_test + int(nottest * eval_ratio):].tolist()
+        self.custom_set = []
 
-        # Either train, eval or test
+        # Either train, eval, test or custom
         self.mode = 'train'
 
     def __len__(self):
@@ -57,6 +58,8 @@ class Dataset(data.Dataset):
             return len(self.train_set)
         if self.mode == 'eval':
             return len(self.eval_set)
+        if self.mode == 'custom':
+            return len(self.custom_set)
         return len(self.test_set)
 
     def __getitem__(self, index):
@@ -64,6 +67,8 @@ class Dataset(data.Dataset):
             items = self.train_set
         elif self.mode == 'eval':
             items = self.eval_set
+        elif self.mode == 'custom':
+            items = self.custom_set
         else:
             items = self.test_set
 
@@ -78,11 +83,26 @@ class Dataset(data.Dataset):
         print('\n'.join(map(lambda x: '- ' + x,
             self.attrs.columns.values[1:])))
 
-    def get_attrs(self, attr):
+    def get_attr_list(self):
+        '''
+        Get all attributes (categories)
+        '''
+        return self.attrs.columns.values[1:].tolist()
+
+    def get_attrs(self, attr, positive=True):
         '''
         Returns all images matching the attribute name (in all sets).
         '''
-        return self.attrs.loc[self.attrs[attr] == 1]
+        attrs = self.attrs.loc[self.attrs[attr] == (1 if positive else 0)]
+
+        return attrs['image_id'].tolist()
+
+    def load_attrs(self, attr, positive):
+        '''
+        Loads all attributes within the custom set
+        '''
+        self.mode = 'custom'
+        self.custom_set = self.get_attrs(attr, positive)
 
 
 class TrainingResult:

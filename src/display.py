@@ -2,6 +2,7 @@ import torch as T
 import matplotlib.pyplot as plt
 
 
+# TODO : Display raw
 def display(net, batch, show=True):
     '''
     Displays ground truth vs predicted
@@ -18,6 +19,25 @@ def display(net, batch, show=True):
         for i in range(len(batch)):
             axarr[0, i].imshow(toplt(batch[i]))
             axarr[1, i].imshow(toplt(y[i]).clip(0, 1), vmin=0, vmax=1)
+
+        if show:
+            plt.show()
+
+        return f
+
+
+def display_grid(grid, show=True):
+    with T.no_grad():
+        f, axarr = plt.subplots(len(grid), len(grid[0]))
+
+        # Grid display
+        toplt = lambda img: img.detach().permute(1, 2, 0).cpu() \
+                .squeeze().numpy()
+        for i in range(len(grid)):
+            ax = axarr if len(grid) == 1 else axarr[i]
+            for j in range(len(grid[0])):
+                ax[j].imshow(toplt(grid[i][j]).clip(0, 1),
+                        vmin=0, vmax=1)
 
         if show:
             plt.show()
