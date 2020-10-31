@@ -4,6 +4,7 @@ import torch.nn.functional as F
 from tqdm import tqdm
 from params import *
 from data import DatasetIterator, TrainingResult
+from vgg_loss import FLPLoss
 
 
 def evl(net, batch_size, dataset):
@@ -14,8 +15,7 @@ def evl(net, batch_size, dataset):
     '''
     print('### Evaluation')
 
-    opti = optim.Adam(net.parameters(), lr)
-    criterion = F.mse_loss
+    criterion = FLPLoss('vae-123', device, 'mean')
 
     net.train(False)
     dataset.mode = 'eval'
@@ -46,7 +46,8 @@ def train(net, lr, epochs, batch_size, dataset, save_path=''):
     print('### Training')
 
     opti = optim.Adam(net.parameters(), lr)
-    criterion = F.mse_loss
+    # criterion = F.mse_loss
+    criterion = FLPLoss('vae-123', device, 'mean')
 
     net.train(True)
     dataset.mode = 'train'
@@ -74,9 +75,12 @@ def train(net, lr, epochs, batch_size, dataset, save_path=''):
 
         bar.set_postfix({'loss': loss.item()})
 
-        if save_path != '':
+        if batch == 0 and epoch != 0 and save_path != '':
             T.save(net.state_dict(), save_path)
             print('Saved model at', save_path)
+
+    T.save(net.state_dict(), save_path)
+    print('Saved model at', save_path)
 
     return losses
 
