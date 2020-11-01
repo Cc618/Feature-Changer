@@ -15,9 +15,10 @@ from display import *
 from stats import *
 
 
-# TODO : Move
-save_path = 'data/net2_feat'
-features_path = 'data/features3'
+save_path = 'data/net3_feat'
+features_path = 'data/features2'
+# TODO : save_path = 'data/net2_feat'
+# TODO : features_path = 'data/features3'
 eval_ratio = 1 / 20
 n_test = 10
 
@@ -72,6 +73,39 @@ else:
 # display_loss([(f'lr={lr} batch_size={bs}', loss) \
 #     for (lr, bs), loss in zip(tweaks, losses)], 3)
 # print(tune_stats(net, 1, tweaks, dataset))
+
+
+# Display images with same attributes
+# And remove this attribute
+to_rm_attr = 'Eyeglasses'
+positive = True
+# ratios = [1, .5, 0, -.5, -1]
+ratios = [0, -1]
+
+print(len(dataset.get_attrs(to_rm_attr, positive)), to_rm_attr, 'as', positive)
+feature = gen_attrs(net, [to_rm_attr], dataset, z_size, batch_size=512)
+feature = feature[to_rm_attr]
+
+dataset.mode = 'custom'
+dataset.custom_set = dataset.sample_attrs(to_rm_attr, n_test,
+        positive=positive)
+
+testloader = T.utils.data.DataLoader(dataset, batch_size=n_test,
+        shuffle=False)
+
+batch = next(iter(testloader))
+batch = batch.to(device)
+
+grid = [batch]
+
+z = net.encode(batch)
+for ratio in ratios:
+    feature_changed = net.decode(z + feature * ratio)
+    grid.append(feature_changed)
+
+display_grid(grid)
+
+exit()
 
 
 # Test

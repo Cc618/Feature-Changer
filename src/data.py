@@ -95,21 +95,30 @@ class Dataset(data.Dataset):
         '''
         Returns all images matching the attribute name (in all sets).
         '''
-        attrs = self.attrs.loc[self.attrs[attr] == (1 if positive else 0)]
+        if sample:
+            return self.sample_attrs(attr, attr_n_sample, positive=positive)
+
+        attrs = self.attrs.loc[self.attrs[attr] == (1 if positive else -1)]
         attrs = attrs['image_id'].tolist()
 
-        if not sample:
-            return attrs
+        return attrs
+
+    def sample_attrs(self, attr, count, positive=True):
+        '''
+        Samples a batch of file paths containing this attribute
+        '''
+        attrs = self.attrs.loc[self.attrs[attr] == (1 if positive else -1)]
+        attrs = attrs['image_id'].tolist()
 
         shuffle(attrs)
-        return attrs[:attr_n_sample]
+        return attrs[:count]
 
     def load_attrs(self, attr, positive):
         '''
         Loads all attributes within the custom set
         '''
         self.mode = 'custom'
-        self.custom_set = self.get_attrs(attr, positive, True)
+        self.custom_set = self.get_attrs(attr, positive=positive, sample=True)
 
 
 class TrainingResult:
