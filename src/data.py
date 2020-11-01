@@ -1,3 +1,4 @@
+from random import shuffle
 import pickle
 import pandas as pd
 from PIL import Image
@@ -6,9 +7,10 @@ from torchvision.transforms import ToTensor
 from user import dataset_path
 
 attr_path = dataset_path + '/list_attr_celeba.csv'
-# TODO : Good path ?
 img_path = dataset_path + '/img_align_celeba/img_align_celeba'
 
+# Number of samples we take at random  to generate the absolute vector
+attr_n_sample = 1000
 
 class DatasetIterator:
     '''
@@ -89,20 +91,25 @@ class Dataset(data.Dataset):
         '''
         return self.attrs.columns.values[1:].tolist()
 
-    def get_attrs(self, attr, positive=True):
+    def get_attrs(self, attr, positive=True, sample=False):
         '''
         Returns all images matching the attribute name (in all sets).
         '''
         attrs = self.attrs.loc[self.attrs[attr] == (1 if positive else 0)]
+        attrs = attrs['image_id'].tolist()
 
-        return attrs['image_id'].tolist()
+        if not sample:
+            return attrs
+
+        shuffle(attrs)
+        return attrs[:attr_n_sample]
 
     def load_attrs(self, attr, positive):
         '''
         Loads all attributes within the custom set
         '''
         self.mode = 'custom'
-        self.custom_set = self.get_attrs(attr, positive)
+        self.custom_set = self.get_attrs(attr, positive, True)
 
 
 class TrainingResult:

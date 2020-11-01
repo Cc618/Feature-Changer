@@ -38,6 +38,16 @@ def evl(net, batch_size, dataset):
     return loss / (batch + 1)
 
 
+def sparse_loss(x):
+    '''
+    loss = mean(min(abs(x), sqrt(abs(x))))
+    '''
+    x = x.abs().view(1, -1, z_size)
+    both = T.cat([x, x.sqrt()], dim=0)
+
+    return both.min(0)[0].mean()
+
+
 def train(net, lr, epochs, batch_size, dataset, save_path=''):
     '''
     Training session
@@ -48,6 +58,7 @@ def train(net, lr, epochs, batch_size, dataset, save_path=''):
     opti = optim.Adam(net.parameters(), lr)
     # criterion = F.mse_loss
     criterion = FLPLoss('vae-123', device, 'mean')
+    sparse_ratio = 1e-3
 
     net.train(True)
     dataset.mode = 'train'
@@ -60,9 +71,10 @@ def train(net, lr, epochs, batch_size, dataset, save_path=''):
 
     for (epoch, batch), x in bar:
         x = x.to(device)
-        reconstructed = net(x)
+        z = net.encode(x)
+        reconstructed = net.decode(z)
 
-        loss = criterion(reconstructed, x)
+        loss = criterion(reconstructed, x) + sparse_ratio * sparse_loss(z)
 
         opti.zero_grad()
         loss.backward()
@@ -70,8 +82,6 @@ def train(net, lr, epochs, batch_size, dataset, save_path=''):
 
         # Update metrics
         losses.append(loss)
-
-        # TODO : Eval each epoch ?
 
         bar.set_postfix({'loss': loss.item()})
 

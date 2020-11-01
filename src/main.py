@@ -16,8 +16,8 @@ from stats import *
 
 
 # TODO : Move
-save_path = 'data/net3_feat'
-features_path = 'data/features'
+save_path = 'data/net2_feat'
+features_path = 'data/features3'
 eval_ratio = 1 / 20
 n_test = 10
 
@@ -29,16 +29,17 @@ dataset = Dataset(n_test, eval_ratio, transform)
 # Net
 net = Net3().to(device)
 
+# Load
 if save_path != '' and os.path.exists(save_path):
     net.load_state_dict(T.load(save_path))
     print('Loaded model from', save_path)
+else:
+    # Train
+    train_losses = train(net, 1e-3, 1, 256, dataset, save_path)
+    print('Train losses :', train_losses)
 
-# Train
-# train_losses = train(net, 1e-3, 1, 256, dataset, save_path)
-# print('Train losses :', train_losses)
-
-loss = evl(net, 2048, dataset)
-print('Eval loss :', loss)
+    # loss = evl(net, 2048, dataset)
+    # print('Eval loss :', loss)
 
 # # Tweak
 # results = [
@@ -83,7 +84,6 @@ batch = batch.to(device)
 
 display(net, batch)
 
-
 # Generate attribute vectors
 if not os.path.exists(features_path):
     # Can be chosen via dataset.list_attrs()
@@ -91,12 +91,12 @@ if not os.path.exists(features_path):
     all_attrs = [
         'Blond_Hair',
         'Eyeglasses',
-        # 'Heavy_Makeup',
-        # 'Male',
-        # 'Mustache',
-        # 'Smiling',
-        # 'Wearing_Hat',
-        # 'Young',
+        'Heavy_Makeup',
+        'Male',
+        'Mustache',
+        'Smiling',
+        'Wearing_Hat',
+        'Young',
     ]
     attrs = gen_attrs(net, all_attrs, dataset, z_size, batch_size=512)
     T.save(attrs, features_path)
