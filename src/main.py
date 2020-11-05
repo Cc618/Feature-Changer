@@ -9,13 +9,10 @@ except:
     print('Cannot import user config (should be at src/user.py), check README')
 from params import *
 from net import *
-from data import Dataset, TrainingResult
+from data import *
 from train import *
 from display import *
 from stats import *
-
-
-# TODO : n_weights
 
 
 # Params
@@ -23,7 +20,7 @@ save_path = 'data/pg'
 features_path = 'data/features_pg'
 # TODO : save_path = 'data/net2_feat'
 # TODO : features_path = 'data/features3'
-# TODO :
+# TODO : 1 / 20
 eval_ratio = 19 / 20
 n_test = 8
 
@@ -51,6 +48,7 @@ train_epochs = [
     ]
 
 net = PGAE(steps, chan).to(device)
+print(f'Network with {(n_weights(net) + 999) // 1000}K weights')
 
 train_pg(net, 1e-3, train_epochs, 3, 128, dataset, save_path)
 

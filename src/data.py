@@ -12,6 +12,22 @@ img_path = dataset_path + '/img_align_celeba/img_align_celeba'
 # Number of samples we take at random  to generate the absolute vector
 attr_n_sample = 1000
 
+
+def n_weights(module):
+    def prod(shape):
+        p = 1
+        for s in shape:
+            p *= s
+
+        return p
+
+    total = 0
+    for p in module.parameters():
+        total += prod(p.shape)
+
+    return total
+
+
 class DatasetIterator:
     '''
     Used to have a nice progress bar with tqdm
