@@ -15,17 +15,74 @@ from display import *
 from stats import *
 
 
-save_path = 'data/net3_feat'
-features_path = 'data/features2'
+# TODO : n_weights
+
+
+# Params
+save_path = 'data/pg'
+features_path = 'data/features_pg'
 # TODO : save_path = 'data/net2_feat'
 # TODO : features_path = 'data/features3'
-eval_ratio = 1 / 20
-n_test = 6
+# TODO :
+eval_ratio = 19 / 20
+n_test = 8
+
 
 # Data
 transform = transforms.Compose([transforms.Resize((img_size, img_size)),
                                 transforms.ToTensor()])
 dataset = Dataset(n_test, eval_ratio, transform)
+
+
+# --- Progressive Growing ---
+# Hyper params
+steps = 4
+chan = 8
+
+# Train
+train_epochs = [
+        1,
+        # With merging
+        1,
+        1,
+        1,
+        # Without merging (full size)
+        2
+    ]
+
+net = PGAE(steps, chan).to(device)
+
+train_pg(net, 1e-3, train_epochs, 3, 128, dataset, save_path)
+
+# Display batch
+dataset.mode = 'test'
+net.eval()
+loader = T.utils.data.DataLoader(dataset,
+            batch_size=n_test,
+            shuffle=False)
+batch = next(iter(loader)).to(device)
+display(net, batch)
+
+print('\nDone')
+exit()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Net
 net = Net3().to(device)

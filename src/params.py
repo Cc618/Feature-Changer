@@ -1,6 +1,6 @@
 import torch as T
 
-img_size = 32
+img_size = 64
 img_depth = 3
 
 sparse_ratio = 1e-2

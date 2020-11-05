@@ -229,3 +229,172 @@ class Net3(nn.Module):
         y = self.decode(z)
 
         return y
+
+
+# --- Progressive Growing Autoencoder ---
+def FromRGB(chan):
+    return nn.Conv2d(3, chan, 1)
+
+
+def ToRGB(chan):
+    return nn.Conv2d(chan, 3, 1)
+
+
+def EConv(in_chan, out_chan):
+    '''
+    Encoder convolution block (no upsampling performed)
+    '''
+    return nn.Sequential(
+            # Conv 1
+            nn.Conv2d(in_chan, out_chan, 3, padding=1),
+            nn.LeakyReLU(.2),
+            nn.BatchNorm2d(out_chan),
+
+            # Conv 2
+            nn.Conv2d(out_chan, out_chan, 3, padding=1),
+            nn.LeakyReLU(.2),
+            nn.BatchNorm2d(out_chan),
+        )
+
+
+def DConv(in_chan, out_chan):
+    '''
+    Decoder convolution block (no downsampling performed)
+    '''
+    return nn.Sequential(
+            # Conv 1
+            nn.Conv2d(in_chan, out_chan, 3, padding=1),
+            nn.LeakyReLU(.2),
+            nn.BatchNorm2d(out_chan),
+
+            # Conv 2
+            nn.Conv2d(out_chan, out_chan, 3, padding=1),
+            nn.LeakyReLU(.2),
+            nn.BatchNorm2d(out_chan),
+        )
+
+
+class EBlock(nn.Module):
+    '''
+    Encoder block
+    '''
+    def __init__(self, in_chan, out_chan):
+        super().__init__()
+
+        self.from_rgb = FromRGB(in_chan)
+        self.conv = EConv(in_chan, out_chan)
+
+    def forward(self, x, rgb_input=False):
+        y = x
+
+        if rgb_input:
+            y = self.from_rgb(y)
+
+        y = self.conv(y)
+        y = F.max_pool2d(y, 2)
+
+        return y
+
+
+class DBlock(nn.Module):
+    '''
+    Decoder block
+    '''
+    def __init__(self, in_chan, out_chan):
+        super().__init__()
+
+        self.conv = DConv(in_chan, out_chan)
+        self.to_rgb = ToRGB(out_chan)
+
+    def forward(self, x, rgb_output=False):
+        y = x
+
+        y = F.interpolate(y, scale_factor=2, mode='bilinear',
+                align_corners=False)
+        y = self.conv(y)
+
+        if rgb_output:
+            y = self.to_rgb(y)
+
+        return y
+
+
+class PGAE(nn.Module):
+    '''
+    Progressive Auto Encoder
+    '''
+    def __init__(self, steps, chan):
+        super().__init__()
+
+        self.steps = steps
+
+        # TODO : self.first_encoder = EBlock(3, chan)
+        self.encoders = nn.ModuleList([
+                EBlock(chan * 2 ** step, chan * 2 ** (step + 1))
+                for step in range(steps)
+            ])
+
+        self.decoders = nn.ModuleList([
+                DBlock(chan * 2 ** step, chan * 2 ** (step - 1))
+                for step in range(steps, 0, -1)
+            ])
+        # TODO : self.last_decoder = DBlock(chan, 3)
+
+        # How much we merge the last encoding / first decoding layer
+        # alpha in the paper
+        self.merge_ratio = 1
+
+        # Current step
+        # decoders[:step] will be applied
+        self.step = 1
+
+    def forward(self, x):
+        # print('--- Encode ---')
+        z = self.encode(x)
+        # print('--- Decode ---')
+        y = self.decode(z)
+
+        return y
+
+    def encode(self, x):
+        z = x
+
+        # Merge if at least 2 layers
+        if self.step > 1 and self.merge_ratio < 1:
+            z_prev = F.avg_pool2d(z, 2)
+            z_prev = self.encoders[self.steps - self.step + 1].from_rgb(z_prev)
+
+            z = self.encoders[self.steps - self.step](z, rgb_input=True)
+
+            z = self.merge_ratio * z + (1 - self.merge_ratio) * z_prev
+        else:
+            z = self.encoders[self.steps - self.step](z, rgb_input=True)
+
+        # print(z.shape)
+
+        for i in range(self.steps - self.step + 1, self.steps):
+            z = self.encoders[i](z)
+            # print(z.shape)
+
+        return z
+
+    def decode(self, z):
+        y = z
+
+        for i in range(self.step - 1):
+            # print(y.shape)
+            y = self.decoders[i](y)
+
+        # Merge if at least 2 layers
+        # print(y.shape)
+        if self.step != 1:
+            y_rgb_prev = self.decoders[self.step - 2].to_rgb(y)
+            y_rgb_prev = F.interpolate(y_rgb_prev, scale_factor=2)
+
+            y_rgb = self.decoders[self.step - 1](y, rgb_output=True)
+
+            y = self.merge_ratio * y_rgb + (1 - self.merge_ratio) * y_rgb_prev
+        else:
+            y = self.decoders[self.step - 1](y, rgb_output=True)
+
+        return y
