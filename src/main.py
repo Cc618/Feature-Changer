@@ -20,7 +20,7 @@ features_path = 'data/features2'
 # TODO : save_path = 'data/net2_feat'
 # TODO : features_path = 'data/features3'
 eval_ratio = 1 / 20
-n_test = 10
+n_test = 6
 
 # Data
 transform = transforms.Compose([transforms.Resize((img_size, img_size)),
@@ -75,12 +75,14 @@ else:
 # print(tune_stats(net, 1, tweaks, dataset))
 
 
+# IMG : sess2/add_{glasses,blond_hair}.png
 # Display images with same attributes
 # And remove this attribute
-to_rm_attr = 'Eyeglasses'
-positive = True
+to_rm_attr = 'Smiling'
+positive = False
 # ratios = [1, .5, 0, -.5, -1]
-ratios = [0, -1]
+ratios = [1, 2, 4]
+# ratios = [-1, -2, -4]
 
 print(len(dataset.get_attrs(to_rm_attr, positive)), to_rm_attr, 'as', positive)
 feature = gen_attrs(net, [to_rm_attr], dataset, z_size, batch_size=512)
