@@ -1,6 +1,7 @@
 import torch as T
 from torch import optim
 import torch.nn.functional as F
+from torchvision import transforms
 from tqdm import tqdm
 from params import *
 from data import DatasetIterator, TrainingResult
@@ -90,8 +91,9 @@ def train(net, lr, epochs, batch_size, dataset, save_path=''):
             T.save(net.state_dict(), save_path)
             print('Saved model at', save_path)
 
-    T.save(net.state_dict(), save_path)
-    print('Saved model at', save_path)
+    if save_path != '':
+        T.save(net.state_dict(), save_path)
+        print('Saved model at', save_path)
 
     return losses
 
@@ -112,5 +114,85 @@ def tune_stats(net, epochs, hyperparams, dataset, eval_batch_size=0):
 
         print('> Eval loss :', loss)
         stats.append(loss)
+
+    return stats
+
+
+def gen_pg_transform(img_size, steps, step):
+    '''
+    Generates a transform for a progressive growing model
+    - steps : Number of times we add layers to the PGAE
+    - step : Current step, 1 = No layer added, steps = All layers added
+    '''
+    size = img_size // 2 ** (steps - step)
+
+    return transforms.Compose([
+                transforms.Resize((size, size)),
+                transforms.ToTensor()])
+
+
+def train_pg(net, lr, epochs, feature_loss_step, batch_size, dataset,
+        save_path=''):
+    '''
+    - epochs : List of all epochs for each step + final training
+            when merge_ratio is 1
+    - feature_loss_step : From which step the deep feature consistent loss
+            is used
+    - Returns losses for each batch
+    '''
+    print(f'Training progressive growing model, image_size={img_size}')
+    print(f'lr={lr}, batch_size={batch_size}, save_path={save_path}')
+    print('Epochs :', epochs)
+
+    stats = []
+
+    # TODO : Save
+    dataset.mode = 'train'
+    net.train(True)
+    loader = T.utils.data.DataLoader(dataset, batch_size=batch_size,
+            shuffle=True)
+    opti = optim.Adam(net.parameters(), lr)
+
+    criterion_small = F.mse_loss
+    criterion_big = FLPLoss('vae-123', device, 'mean')
+    net.step = 1
+    n_batch = len(dataset) // batch_size + 1
+    for i in range(net.steps + 1):
+        dataset.transform = gen_pg_transform(img_size, net.steps, net.step)
+
+        criterion = criterion_big if net.step >= feature_loss_step else \
+                criterion_small
+
+        n_epoch = epochs[i]
+        iterator = DatasetIterator(loader, n_epoch)
+        bar = tqdm(iterator)
+        for (e, b), batch in bar:
+            net.merge_ratio = 1 if i >= net.steps else \
+                    (e + (b + 1) / n_batch) / n_epoch
+
+            batch = batch.to(device)
+            generated = net(batch)
+
+            loss = criterion(generated, batch)
+            stats.append(loss.item())
+
+            opti.zero_grad()
+            loss.backward()
+            opti.step()
+
+            bar.set_postfix({
+                    'out_size': img_size // 2 ** (net.steps - net.step),
+                    'epoch': e + 1,
+                    'merge_ratio': net.merge_ratio,
+                    'batch': b + 1,
+                    'loss': loss.item(),
+                })
+
+            if b == n_batch - 1 and save_path != '':
+                T.save(net.state_dict(), save_path)
+
+        # print('Trained for size', img_size // 2 ** (net.steps - net.step))
+        if net.step < net.steps:
+            net.step += 1
 
     return stats

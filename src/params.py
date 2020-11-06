@@ -1,5 +1,6 @@
 import torch as T
 
+# TODO : PG
 img_size = 32
 img_depth = 3
 
