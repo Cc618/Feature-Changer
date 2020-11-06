@@ -17,17 +17,17 @@ from stats import *
 
 # Configure what to show
 config = [
-        # Benchmark multiple network architectures
+        # * Benchmark multiple network architectures
         # 'tune',
-        # Display batch
-        'display',
-        # Save media of README in the res folder
+        # * Display batch
+        # 'display',
+        # * Save media of README in the res folder
         'media',
-        # Change one feature and display multiple levels
-        # of adding / removing it
-        'change_feat',
-        # Show multiple images with added features on them
-        'all_feat'
+        # * Change one feature and display multiple levels
+        # * of adding / removing it
+        # 'change_feat',
+        # * Show multiple images with added features on them
+        # 'all_feat'
     ]
 
 # Params
@@ -38,7 +38,7 @@ else:
     save_path = 'data/net3_feat'
     features_path = 'data/features2'
 
-eval_ratio = 199 / 200
+eval_ratio = 1 / 20
 n_test = 8
 
 
@@ -155,26 +155,45 @@ if 'media' in config:
 
     net.eval()
     with T.no_grad():
+        # TODO : Custom images
         batch = next(iter(loader)).to(device)
 
+        woman_blond = batch[0]
+        woman_smile = batch[1]
+        man_brown = batch[6]
+        z_woman_blond = net.encode(woman_blond.unsqueeze(0))
+        z_woman_smile = net.encode(woman_smile.unsqueeze(0))
+        z_man_brown = net.encode(man_brown.unsqueeze(0))
+
+        # Find feature vectors
+        attrs = ['Smiling', 'Male', 'Mustache', 'Blond_Hair']
+        features = gen_attrs(net, attrs,
+                dataset, batch_size=512)
+        z_smile = features['Smiling']
+        z_male = features['Male']
+        z_mustache = features['Mustache']
+        z_blond = features['Blond_Hair']
+
         # GIFs
-        res = 512
+        res = 256
         n_steps = 20
         transitions = [
-                (batch[0], batch[1]),
-                (batch[2], batch[3]),
+                (z_woman_smile, z_woman_smile - z_smile * 2),
+                (z_woman_blond, z_woman_blond - z_blond * 1.5),
+                (z_woman_smile, z_woman_smile + z_male * 2),
+                (z_woman_blond, z_woman_blond + z_mustache * 2),
+                (z_man_brown, z_man_brown + z_mustache * 2.5),
+                (z_man_brown, z_man_brown + z_blond * 1.5),
+                (z_man_brown, z_man_brown - z_male * 2),
+                (z_man_brown, z_woman_blond),
             ]
 
-        for i, (img_start, img_end) in enumerate(transitions):
-            # Latent lerp between two images
-            img_start = img_start.unsqueeze(0)
-            img_end = img_end.unsqueeze(0)
 
-            z_start = net.encode(img_start)
-            z_end  = net.encode(img_end)
-
+        # Latent lerp between each pair
+        for i, (z_start, z_end) in enumerate(transitions):
             zs = T.stack([z_lerp(z_start, z_end, i / (n_steps - 1))
-                        for i in range(n_steps)])
+                        for i in range(n_steps)]).squeeze(1)
+
             imgs = net.decode(zs)
             save_gif(imgs, f'res/lerp_{i}.gif',
                     process=transforms.Resize((res, res)))
@@ -229,12 +248,12 @@ if 'all_feat' in config:
         all_attrs = [
             'Blond_Hair',
             'Eyeglasses',
-            'Heavy_Makeup',
-            'Male',
+            # 'Heavy_Makeup',
+            # 'Male',
             'Mustache',
             'Smiling',
-            'Wearing_Hat',
-            'Young',
+            # 'Wearing_Hat',
+            # 'Young',
         ]
         attrs = gen_attrs(net, all_attrs, dataset, batch_size=512)
         T.save(attrs, features_path)
