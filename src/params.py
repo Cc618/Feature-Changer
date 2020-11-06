@@ -1,10 +1,13 @@
 import torch as T
 
-# TODO : PG
-img_size = 32
+# Progressive growing architecture
+pg = False
+
+img_size = 64 if pg else 32
 img_depth = 3
 
-sparse_ratio = 1e-2
+# Currently not used
+sparse_ratio = 1e-3
 
 z_size = 100
 
