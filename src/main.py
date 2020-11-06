@@ -17,8 +17,6 @@ from stats import *
 
 save_path = 'data/net3_feat'
 features_path = 'data/features2'
-# TODO : save_path = 'data/net2_feat'
-# TODO : features_path = 'data/features3'
 eval_ratio = 1 / 20
 n_test = 6
 
@@ -41,6 +39,74 @@ else:
 
     # loss = evl(net, 2048, dataset)
     # print('Eval loss :', loss)
+
+
+
+
+
+
+
+
+
+
+
+# --- README media ---
+def save_gif(batch, path, process=None, duration=100):
+    '''
+    Batch to gif
+    '''
+    batch = batch.clamp(0, 1).cpu()
+    to_img = transforms.ToPILImage() if process is None else \
+        transforms.Compose([transforms.ToPILImage(), process])
+    imgs = [to_img(batch[i]) for i in range(len(batch))]
+    imgs[0].save(path, save_all=True, append_images=imgs[1:], loop=0,
+            duration=duration)
+    # transforms.ToPILImage('RGB')(batch[0]).show()
+
+
+def z_lerp(z_start, z_end, ratio):
+    '''
+    Linear interpolation from z_start to z_end
+    '''
+    return z_start * (1 - ratio) + z_end * ratio
+
+
+dataset.mode = 'test'
+loader = T.utils.data.DataLoader(dataset, batch_size=n_test, shuffle=False)
+
+net.eval()
+with T.no_grad():
+    batch = next(iter(loader)).to(device)
+
+    # GIFs
+    res = 512
+    n_steps = 20
+    transitions = [
+            (batch[0], batch[1]),
+            (batch[2], batch[3]),
+        ]
+
+    for i, (img_start, img_end) in enumerate(transitions):
+        # Latent lerp between two images
+        img_start = img_start.unsqueeze(0)
+        img_end = img_end.unsqueeze(0)
+
+        z_start = net.encode(img_start)
+        z_end  = net.encode(img_end)
+
+        zs = T.stack([z_lerp(z_start, z_end, i / (n_steps - 1))
+                    for i in range(n_steps)])
+        imgs = net.decode(zs)
+        save_gif(imgs, f'res/lerp_{i}.gif',
+                process=transforms.Resize((res, res)))
+
+print('Done')
+exit()
+
+
+
+
+
 
 # # Tweak
 # results = [

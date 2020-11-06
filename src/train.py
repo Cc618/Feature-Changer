@@ -74,7 +74,8 @@ def train(net, lr, epochs, batch_size, dataset, save_path=''):
         z = net.encode(x)
         reconstructed = net.decode(z)
 
-        loss = criterion(reconstructed, x) + sparse_ratio * sparse_loss(z)
+        # We can also add a sparse loss to keep z normalized
+        loss = criterion(reconstructed, x) # + sparse_ratio * sparse_loss(z)
 
         opti.zero_grad()
         loss.backward()
