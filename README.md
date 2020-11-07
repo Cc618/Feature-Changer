@@ -5,7 +5,7 @@ This ai is used to modify features in an image, for instance removing glasses.
 ### Add / remove feature
 | Name | DCAE | PGAE | Equation |
 | ---- | ---- | ---- | -------- |
-| Remove smile | ![](res/dc_lerp_1.gif) | ![](res/pg_lerp_1.gif) | z_end = z - z_smile * 2 |
+| Remove smile | ![](res/dc_lerp_1.gif) | ![](res/pg_lerp_1.gif) | z_end = z_start - z_smile * 2 |
 | Add blond hairs | ![](res/dc_lerp_6.gif) | ![](res/pg_lerp_6.gif) | z_end = z_start + z_blond * 2 |
 | Add mustache | ![](res/dc_lerp_7.gif) | ![](res/pg_lerp_7.gif) | z_end = z_start + z_mustache * 2 |
 | Remove blond hairs | ![](res/dc_lerp_9.gif) | ![](res/pg_lerp_9.gif) | z_end = z_start - z_blond * 2 |
