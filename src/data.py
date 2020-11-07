@@ -136,6 +136,13 @@ class Dataset(data.Dataset):
         self.mode = 'custom'
         self.custom_set = self.get_attrs(attr, positive=positive, sample=True)
 
+    def set_custom_images(self, names):
+        '''
+        Sets the custom set of images
+        '''
+        self.mode = 'custom'
+        self.custom_set = names
+
 
 class TrainingResult:
     '''

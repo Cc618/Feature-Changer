@@ -22,7 +22,7 @@ config = [
         # * Display batch
         # 'display',
         # * Save media of README in the res folder
-        'media',
+        # 'media',
         # * Change one feature and display multiple levels
         # * of adding / removing it
         # 'change_feat',
@@ -39,7 +39,7 @@ else:
     features_path = 'data/features2'
 
 eval_ratio = 1 / 20
-n_test = 8
+n_test = 10
 
 
 # Data
@@ -150,20 +150,48 @@ if 'media' in config:
         '''
         return z_start * (1 - ratio) + z_end * ratio
 
-    dataset.mode = 'test'
+    # Load custom images
+    f_man_no_hair = '115'
+    f_man_brown_smile = '116'
+    f_woman_blond_smile = '126'
+    f_man_dark_smile = '129'
+    f_woman_brown = '086'
+    f_woman_brown_glasses = '093'
+    f_woman_black_glasses = '173'
+    f_man_hat = '195'
+    f_woman_blond = '217'
+    f_man_blond = '220'
+
+    dataset.set_custom_images([f'000{name}.jpg' for name in [
+            f_man_no_hair,
+            f_man_brown_smile,
+            f_woman_blond_smile,
+            f_man_dark_smile,
+            f_woman_brown,
+            f_woman_brown_glasses,
+            f_woman_black_glasses,
+            f_man_hat,
+            f_woman_blond,
+            f_man_blond,
+        ]])
+
     loader = T.utils.data.DataLoader(dataset, batch_size=n_test, shuffle=False)
 
     net.eval()
     with T.no_grad():
-        # TODO : Custom images
         batch = next(iter(loader)).to(device)
 
-        woman_blond = batch[0]
-        woman_smile = batch[1]
-        man_brown = batch[6]
-        z_woman_blond = net.encode(woman_blond.unsqueeze(0))
-        z_woman_smile = net.encode(woman_smile.unsqueeze(0))
-        z_man_brown = net.encode(man_brown.unsqueeze(0))
+        # Encode all images
+        (z_man_no_hair,
+                z_man_brown_smile,
+                z_woman_blond_smile,
+                z_man_dark_smile,
+                z_woman_brown,
+                z_woman_brown_glasses,
+                z_woman_black_glasses,
+                z_man_hat,
+                z_woman_blond,
+                z_man_blond) = [net.encode(x.unsqueeze(0)) for x in batch]
 
         # Find feature vectors
         attrs = ['Smiling', 'Male', 'Mustache', 'Blond_Hair']
@@ -178,16 +206,25 @@ if 'media' in config:
         res = 256
         n_steps = 20
         transitions = [
-                (z_woman_smile, z_woman_smile - z_smile * 2),
-                (z_woman_blond, z_woman_blond - z_blond * 1.5),
-                (z_woman_smile, z_woman_smile + z_male * 2),
-                (z_woman_blond, z_woman_blond + z_mustache * 2),
-                (z_man_brown, z_man_brown + z_mustache * 2.5),
-                (z_man_brown, z_man_brown + z_blond * 1.5),
-                (z_man_brown, z_man_brown - z_male * 2),
-                (z_man_brown, z_woman_blond),
-            ]
+                # Image to image
+                (z_man_no_hair, z_man_brown_smile),
+                (z_woman_blond, z_woman_blond_smile),
+                (z_woman_black_glasses, z_woman_brown),
+                (z_man_hat, z_man_blond),
+                (z_man_blond, z_woman_blond),
 
+                # Change feature
+                (z_man_no_hair, z_man_no_hair + z_blond * 2),
+                (z_man_brown_smile, z_man_brown_smile - z_smile * 2),
+                (z_woman_blond_smile, z_woman_blond_smile - z_blond * 2),
+                (z_man_dark_smile, z_man_dark_smile - z_male * 2),
+                (z_woman_brown, z_woman_brown + z_male * 2),
+                (z_woman_brown_glasses, z_woman_brown_glasses - z_woman_brown),
+                (z_woman_black_glasses, z_woman_black_glasses + z_blond * 2),
+                (z_man_hat, z_man_hat + z_mustache * 2),
+                (z_woman_blond, z_woman_blond + z_mustache * 2),
+                (z_man_blond, z_man_blond - z_blond * 2),
+            ]
 
         # Latent lerp between each pair
         for i, (z_start, z_end) in enumerate(transitions):
@@ -195,7 +232,7 @@ if 'media' in config:
                         for i in range(n_steps)]).squeeze(1)
 
             imgs = net.decode(zs)
-            save_gif(imgs, f'res/lerp_{i}.gif',
+            save_gif(imgs, f'res/tmp/lerp_{i}.gif',
                     process=transforms.Resize((res, res)))
 
     print('Saved media in res')
