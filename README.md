@@ -1,6 +1,22 @@
 # Features Changer
 This ai is used to modify features in an image, for instance removing glasses.
 
+## Preview
+### Add / remove feature
+| Name | DCAE | PGAE | Equation |
+| ---- | ---- | ---- | -------- |
+| Remove smile | ![](res/dc_lerp_1.gif) | ![](res/pg_lerp_1.gif) | z_end = z - z_smile * 2 |
+| Add blond hairs | ![](res/dc_lerp_6.gif) | ![](res/pg_lerp_6.gif) | z_end = z_start + z_blond * 2 |
+| Add mustache | ![](res/dc_lerp_7.gif) | ![](res/pg_lerp_7.gif) | z_end = z_start + z_mustache * 2 |
+| Remove blond hairs | ![](res/dc_lerp_9.gif) | ![](res/pg_lerp_9.gif) | z_end = z_start - z_blond * 2 |
+
+### Image to image
+| Start | End | DCAE | PGAE |
+| ----- | --- | ---- | ---- |
+| ![](res/gt_115.jpeg) | ![](res/gt_116.jpeg) | ![](res/dc_lerp_10.gif) | ![](res/pg_lerp_10.gif) |
+| ![](res/gt_173.jpeg) | ![](res/gt_086.jpeg) | ![](res/dc_lerp_12.gif) | ![](res/pg_lerp_12.gif) |
+| ![](res/gt_195.jpeg) | ![](res/gt_220.jpeg) | ![](res/dc_lerp_13.gif) | ![](res/pg_lerp_13.gif) |
+
 ## Structure
 <!-- params update ? -->
 
