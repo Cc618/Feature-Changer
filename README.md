@@ -1,8 +1,8 @@
-# Features Changer
-This ai is used to modify features of an image, for instance removing glasses, add blond hairs or add a smile.
+# Feature Changer
+This ai is used to modify features of an image, for instance adding blond hairs, a smile or even removing sunglasses.
 
 To achieve this, an AutoEncoder network has been used with multiple models such as Deep Convolutional or Progressive Growing architectures.
-Furthermore, to improve the sharpness of the results, a Deep Feature Consistent loss was used.
+Furthermore, to improve the sharpness of the results, a Deep Feature Consistent loss has been added.
 
 ## Preview
 All results are obtained with 30 minutes of training using Google Colab.
@@ -18,8 +18,7 @@ Feature vectors are obtained by sampling 1000 images featuring this attribute an
 1000 images without it. Then, we compute the average difference :
 
 ```
-N = 1000
-feature_vector = (z_positive - z_negative) / N
+feature_vector = mean(z_positive - z_negative)
 ```
 
 ![DCAE](res/dc_grid.png)
@@ -48,12 +47,11 @@ two image representations.
 | ![](res/gt_195.jpeg) | ![](res/gt_220.jpeg) | ![](res/dc_lerp_13.gif) | ![](res/pg_lerp_13.gif) |
 
 ## Network architectures
-
-Two different autoencoders architectures have been used :
+Two different autoencoder architectures have been used :
 
 ### DCAE
-The Deep Convolutional AutoEncoder is the simplest architecture,
-composed of convolution, pooling, upsampling and batch normalization layers.
+The Deep Convolutional AutoEncoder is the simplest architecture.
+Composed of convolution, pooling, upsampling and batch normalization layers.
 The image resolution is 32x32 px and the latent vector is composed of 100 values.
 
 ### PGAE
@@ -61,6 +59,7 @@ The Progressive Growing AutoEncoder architecture is similar to the one described
 Of course, this model is an auto encoder, not a GAN.
 All layers are based on DCAE but the training method is different.
 We progressively add layers that increase the image resolution from 8x8 to 64x64 px.
+In addition, no fully connected layer is used to produce the latent vector.
 
 ### Deep Feature Consistent loss
 Furthermore, to improve image's sharpness, a deep feature consistent loss has been added
@@ -78,17 +77,20 @@ as small compared to PGAE images.
 ## Structure
 - data : Dataset analysis
 - display : Functions to plot and show data
+- main : Contains code to train, eval and tweak the model. Also used to display representations like seen in this file
 - net : Network models
-- params : Hyper parameters
+- params : Hyper parameters and config
+- stats : Statistics to retrieve feature vectors
 - train : Training functions and statistics
 - user : User config (not on git, more details bellow)
+- vgg_loss : Used for deep consistent loss, implemented thanks to [this file](https://github.com/ku2482/vae.pytorch/blob/master/utils/loss.py)
 
 ### User config
 Some user specific properties are gathered within the module src/user.py.
 This module is not on git, you must create it.
 Here are all properties of this file :
 
-- dataset\_path, string : Where the root of the dataset is
+- dataset\_path, string : The path of the root of the dataset
 
 ## Dataset
 The dataset used to train the network and to make statistics is the [celeba
