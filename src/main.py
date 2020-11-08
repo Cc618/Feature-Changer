@@ -27,19 +27,19 @@ config = [
         # * of adding / removing it
         # 'change_feat',
         # * Show multiple images with added features on them
-        # 'all_feat'
+        'all_feat'
     ]
 
 # Params
 if pg:
     save_path = 'data/pg'
-    features_path = 'data/features_pg'
+    features_path = ''
 else:
     save_path = 'data/net3_feat'
-    features_path = 'data/features2'
+    features_path = ''
 
 eval_ratio = 1 / 20
-n_test = 10
+n_test = 6
 
 
 # Data
@@ -130,6 +130,33 @@ if 'display' in config:
     display(net, batch)
 
 # --- README media ---
+# Load custom images
+f_man_no_hair = '115'
+f_man_brown_smile = '116'
+f_woman_blond_smile = '126'
+f_man_dark_smile = '129'
+f_woman_brown = '086'
+f_woman_brown_glasses = '093'
+f_woman_black_glasses = '173'
+f_man_hat = '195'
+f_woman_blond = '217'
+f_man_blond = '220'
+
+custom_images = [f'000{name}.jpg' for name in [
+        f_man_no_hair,
+        f_man_brown_smile,
+        f_woman_blond_smile,
+        f_man_dark_smile,
+        f_woman_brown,
+        f_woman_brown_glasses,
+        f_woman_black_glasses,
+        f_man_hat,
+        f_woman_blond,
+        f_man_blond,
+    ]]
+
+dataset.set_custom_images(custom_images)
+
 if 'media' in config:
     print('> Media')
 
@@ -149,31 +176,6 @@ if 'media' in config:
         Linear interpolation from z_start to z_end
         '''
         return z_start * (1 - ratio) + z_end * ratio
-
-    # Load custom images
-    f_man_no_hair = '115'
-    f_man_brown_smile = '116'
-    f_woman_blond_smile = '126'
-    f_man_dark_smile = '129'
-    f_woman_brown = '086'
-    f_woman_brown_glasses = '093'
-    f_woman_black_glasses = '173'
-    f_man_hat = '195'
-    f_woman_blond = '217'
-    f_man_blond = '220'
-
-    dataset.set_custom_images([f'000{name}.jpg' for name in [
-            f_man_no_hair,
-            f_man_brown_smile,
-            f_woman_blond_smile,
-            f_man_dark_smile,
-            f_woman_brown,
-            f_woman_brown_glasses,
-            f_woman_black_glasses,
-            f_man_hat,
-            f_woman_blond,
-            f_man_blond,
-        ]])
 
     loader = T.utils.data.DataLoader(dataset, batch_size=n_test, shuffle=False)
 
@@ -278,23 +280,25 @@ if 'change_feat' in config:
 if 'all_feat' in config:
     print('> All features')
 
+    # Can be chosen via dataset.list_attrs()
+    # or use all_attrs = dataset.get_attr_list()
+    all_attrs = [
+        'Blond_Hair',
+        'Eyeglasses',
+        # 'Heavy_Makeup',
+        # 'Male',
+        # 'Mustache',
+        'Smiling',
+        # 'Wearing_Hat',
+        # 'Young',
+    ]
+
     # Generate multiple attribute vectors
-    if not os.path.exists(features_path):
-        # Can be chosen via dataset.list_attrs()
-        # or use all_attrs = dataset.get_attr_list()
-        all_attrs = [
-            'Blond_Hair',
-            'Eyeglasses',
-            # 'Heavy_Makeup',
-            # 'Male',
-            'Mustache',
-            'Smiling',
-            # 'Wearing_Hat',
-            # 'Young',
-        ]
+    if features_path == '' or not os.path.exists(features_path):
         attrs = gen_attrs(net, all_attrs, dataset, batch_size=512)
-        T.save(attrs, features_path)
-        print('Saved feature vectors')
+        if features_path != '':
+            T.save(attrs, features_path)
+            print('Saved feature vectors')
     else:
         attrs = T.load(features_path)
         print('Loaded feature vectors')
@@ -303,9 +307,10 @@ if 'all_feat' in config:
     # Show attributes
     # Add all features within attr and show as a grid the result
     net.eval()
-    dataset.mode = 'test'
+    strength = 1.5
     with T.no_grad():
-        testloader = T.utils.data.DataLoader(dataset, batch_size=n_test,
+        dataset.set_custom_images(custom_images[2:6])
+        testloader = T.utils.data.DataLoader(dataset, batch_size=len(dataset),
                 shuffle=False)
         batch = next(iter(testloader))
         batch = batch.to(device)
@@ -315,9 +320,9 @@ if 'all_feat' in config:
         for category, feature in attrs.items():
             # Encode, add feature, decode
             latent = net.encode(batch)
-            latent += feature
+            latent += feature * strength
             generated = net.decode(latent)
 
             grid.append(generated)
 
-        display_grid(grid)
+        display_grid(grid, labels=['Ground Truth'] + all_attrs)

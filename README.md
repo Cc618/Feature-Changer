@@ -2,6 +2,21 @@
 This ai is used to modify features in an image, for instance removing glasses.
 
 ## Preview
+### Feature grid
+Here we follow this equation (strength is a constant with value 1.5) :
+
+```
+z = z + feature_vector * strength
+```
+
+Using DCAE :
+
+![DCAE](res/dc_grid.png)
+
+Using PGAE :
+
+![PGAE](res/pg_grid.png)
+
 ### Add / remove feature
 | Name | DCAE | PGAE | Equation |
 | ---- | ---- | ---- | -------- |
