@@ -6,14 +6,10 @@ This ai is used to modify features in an image, for instance removing glasses.
 Here we follow this equation (strength is a constant with value 1.5) :
 
 ```
-z = z + feature_vector * strength
+z_new = z + feature_vector * strength
 ```
 
-Using DCAE :
-
 ![DCAE](res/dc_grid.png)
-
-Using PGAE :
 
 ![PGAE](res/pg_grid.png)
 
@@ -32,9 +28,31 @@ Using PGAE :
 | ![](res/gt_173.jpeg) | ![](res/gt_086.jpeg) | ![](res/dc_lerp_12.gif) | ![](res/pg_lerp_12.gif) |
 | ![](res/gt_195.jpeg) | ![](res/gt_220.jpeg) | ![](res/dc_lerp_13.gif) | ![](res/pg_lerp_13.gif) |
 
-## Structure
-<!-- params update ? -->
+## Network architectures
 
+Two different autoencoders architectures have been used :
+
+### DCAE
+The Deep Convolutional AutoEncoder is the simplest architecture,
+composed of convolution, pooling, upsampling and batch normalization layers.
+The image resolution is 32x32 px and the latent vector is composed of 100 values.
+
+### PGAE
+The Progressive Growing AutoEncoder architecture is similar to the one described in [this paper](https://arxiv.org/abs/1710.10196).
+Of course, this model is an auto encoder, not a GAN.
+All layers are based on DCAE but the training method is different.
+We progressively add layers that increase the image resolution from 8x8 to 64x64 px.
+
+### Deep Feature Consistent loss
+Furthermore, to improve image's sharpness, a deep feature consistent loss has been added
+like described in [this paper](https://arxiv.org/abs/1610.00291).
+The target and the output are passed through a pretrained VGG19 network and MSE losses
+between the first three VGG layers are summed to produce the total loss.
+For the PGAE model, this loss is used only for 'high resolution' layers with a size of at
+least 32x32px (otherwise, MSE is used).
+This has been implemented thanks to [this repo](https://github.com/ku2482/vae.pytorch) (MIT license).
+
+## Structure
 - data : Dataset analysis
 - display : Functions to plot and show data
 - net : Network models
@@ -68,3 +86,10 @@ celeba
 ├── list_eval_partition.csv
 └── list_landmarks_align_celeba.csv
 ```
+
+## Sources
+- [Progressive Growing GANs](https://arxiv.org/abs/1710.10196)
+- [Deep Feature Consistent VAE](https://arxiv.org/abs/1610.00291)
+- [Deep Feature Consistent VAE (pytorch implementation)](https://github.com/ku2482/vae.pytorch)
+- [Celeba Dataset](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html)
+- [Celeba Dataset (kaggle)](https://www.kaggle.com/jessicali9530/celeba-dataset).

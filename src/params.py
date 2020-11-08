@@ -1,7 +1,7 @@
 import torch as T
 
 # Progressive growing architecture
-pg = True
+pg = False
 
 img_size = 64 if pg else 32
 img_depth = 3
