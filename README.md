@@ -5,11 +5,21 @@ To achieve this, an AutoEncoder network has been used with multiple models such 
 Furthermore, to improve the sharpness of the results, a Deep Feature Consistent loss was used.
 
 ## Preview
+All results are obtained with 30 minutes of training using Google Colab.
+
 ### Feature grid
 Here we follow this equation (strength is a constant with value 1.5) :
 
 ```
 z_new = z + feature_vector * strength
+```
+
+Feature vectors are obtained by sampling 1000 images featuring this attribute and
+1000 images without it and making the difference :
+
+```
+N = 1000
+feature_vector = (z_positive - z_negative) / N
 ```
 
 ![DCAE](res/dc_grid.png)
@@ -55,6 +65,10 @@ For the PGAE model, this loss is used only for 'high resolution' layers with a s
 least 32x32px (otherwise, MSE is used).
 This has been implemented thanks to [this repo](https://github.com/ku2482/vae.pytorch) (MIT license).
 
+### Results
+It turns out that the DCAE model outputs better results even though the resolution is twice
+as small compared to PGAE images.
+
 ## Structure
 - data : Dataset analysis
 - display : Functions to plot and show data
@@ -63,7 +77,7 @@ This has been implemented thanks to [this repo](https://github.com/ku2482/vae.py
 - train : Training functions and statistics
 - user : User config (not on git, more details bellow)
 
-## User config
+### User config
 Some user specific properties are gathered within the module src/user.py.
 This module is not on git, you must create it.
 Here are all properties of this file :
