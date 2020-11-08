@@ -15,7 +15,7 @@ z_new = z + feature_vector * strength
 ```
 
 Feature vectors are obtained by sampling 1000 images featuring this attribute and
-1000 images without it and making the difference :
+1000 images without it. Then, we compute the average difference :
 
 ```
 N = 1000
@@ -26,7 +26,10 @@ feature_vector = (z_positive - z_negative) / N
 
 ![PGAE](res/pg_grid.png)
 
-### Add / remove feature
+### Add / remove features
+These GIFs represent a linear interpolation of latent vectors between
+the representation of an image (z_start) and its feature changed representation (z_end).
+
 | Name | DCAE | PGAE | Equation |
 | ---- | ---- | ---- | -------- |
 | Remove smile | ![](res/dc_lerp_1.gif) | ![](res/pg_lerp_1.gif) | z_end = z_start - z_smile * 2 |
@@ -35,6 +38,9 @@ feature_vector = (z_positive - z_negative) / N
 | Remove blond hairs | ![](res/dc_lerp_9.gif) | ![](res/pg_lerp_9.gif) | z_end = z_start - z_blond * 2 |
 
 ### Image to image
+Similar to the previous section, this one delineates the linear interpolation between
+two image representations.
+
 | Start | End | DCAE | PGAE |
 | ----- | --- | ---- | ---- |
 | ![](res/gt_115.jpeg) | ![](res/gt_116.jpeg) | ![](res/dc_lerp_10.gif) | ![](res/pg_lerp_10.gif) |
