@@ -170,7 +170,7 @@ class TrainingResult:
             pickle.dump(self, f)
 
 
-# TODO : Change source file
+# Display available attributes
 if __name__ == '__main__':
     eval_ratio = 1 / 20
     n_test = 8

@@ -104,7 +104,6 @@ def tune_stats(net, epochs, hyperparams, dataset, eval_batch_size=0):
     - hyperparams : List of (lr, batch_size)
     - Returns a list for each config of evaluation error
     '''
-    # TODO : Add time
     stats = []
     for i, (lr, batch_size) in enumerate(hyperparams):
         print(f'## Config {i}')
@@ -146,7 +145,6 @@ def train_pg(net, lr, epochs, feature_loss_step, batch_size, dataset,
 
     stats = []
 
-    # TODO : Save
     dataset.mode = 'train'
     net.train(True)
     loader = T.utils.data.DataLoader(dataset, batch_size=batch_size,

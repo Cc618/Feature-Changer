@@ -73,7 +73,7 @@ def display_loss(config, show=True):
     return f
 
 
-# TODO : rm
+# Display custom loss
 if __name__ == '__main__':
     from data import TrainingResult
 

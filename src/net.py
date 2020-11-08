@@ -328,7 +328,6 @@ class PGAE(nn.Module):
 
         self.steps = steps
 
-        # TODO : self.first_encoder = EBlock(3, chan)
         self.encoders = nn.ModuleList([
                 EBlock(chan * 2 ** step, chan * 2 ** (step + 1))
                 for step in range(steps)
@@ -338,7 +337,6 @@ class PGAE(nn.Module):
                 DBlock(chan * 2 ** step, chan * 2 ** (step - 1))
                 for step in range(steps, 0, -1)
             ])
-        # TODO : self.last_decoder = DBlock(chan, 3)
 
         # How much we merge the last encoding / first decoding layer
         # alpha in the paper
