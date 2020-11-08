@@ -1,5 +1,8 @@
 # Features Changer
-This ai is used to modify features in an image, for instance removing glasses.
+This ai is used to modify features of an image, for instance removing glasses, add blond hairs or add a smile.
+
+To achieve this, an AutoEncoder network has been used with multiple models such as Deep Convolutional or Progressive Growing architectures.
+Furthermore, to improve the sharpness of the results, a Deep Feature Consistent loss was used.
 
 ## Preview
 ### Feature grid
