@@ -62,7 +62,7 @@ like described in [this paper](https://arxiv.org/abs/1610.00291).
 The target and the output are passed through a pretrained VGG19 network and MSE losses
 between the first three VGG layers are summed to produce the total loss.
 For the PGAE model, this loss is used only for 'high resolution' layers with a size of at
-least 32x32px (otherwise, MSE is used).
+least 32x32 px (otherwise, MSE is used).
 This has been implemented thanks to [this repo](https://github.com/ku2482/vae.pytorch) (MIT license).
 
 ### Results
@@ -104,9 +104,13 @@ celeba
 └── list_landmarks_align_celeba.csv
 ```
 
+## Contributing
+This repo is under the [MIT License](LICENSE).
+Contributions are welcome, feel free to add another model or to tune hyperparameters.
+
 ## Sources
 - [Progressive Growing GANs](https://arxiv.org/abs/1710.10196)
 - [Deep Feature Consistent VAE](https://arxiv.org/abs/1610.00291)
 - [Deep Feature Consistent VAE (pytorch implementation)](https://github.com/ku2482/vae.pytorch)
 - [Celeba Dataset](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html)
-- [Celeba Dataset (kaggle)](https://www.kaggle.com/jessicali9530/celeba-dataset).
+- [Celeba Dataset (kaggle)](https://www.kaggle.com/jessicali9530/celeba-dataset)
