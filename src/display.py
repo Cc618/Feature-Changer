@@ -25,7 +25,7 @@ def display(net, batch, show=True):
         return f
 
 
-def display_grid(grid, show=True, labels=None):
+def display_grid(grid, show=True, labels=None, title=None):
     with T.no_grad():
         f, axarr = plt.subplots(len(grid), len(grid[0]))
 
@@ -40,6 +40,9 @@ def display_grid(grid, show=True, labels=None):
 
             if labels is not None:
                 ax[0].set_ylabel(labels[i])
+
+        if title is not None:
+            f.suptitle(title)
 
         if show:
             plt.show()

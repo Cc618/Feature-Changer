@@ -325,4 +325,5 @@ if 'all_feat' in config:
 
             grid.append(generated)
 
-        display_grid(grid, labels=['Ground Truth'] + all_attrs)
+        display_grid(grid, title='PGAE' if pg else 'DCAE',
+                labels=['Ground Truth'] + all_attrs)
