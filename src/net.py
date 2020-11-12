@@ -242,7 +242,7 @@ def ToRGB(chan):
 
 def EConv(in_chan, out_chan):
     '''
-    Encoder convolution block (no upsampling performed)
+    Encoder convolution block (no downsampling performed)
     '''
     return nn.Sequential(
             # Conv 1
@@ -259,7 +259,7 @@ def EConv(in_chan, out_chan):
 
 def DConv(in_chan, out_chan):
     '''
-    Decoder convolution block (no downsampling performed)
+    Decoder convolution block (no upsampling performed)
     '''
     return nn.Sequential(
             # Conv 1
@@ -347,9 +347,7 @@ class PGAE(nn.Module):
         self.step = 1
 
     def forward(self, x):
-        # print('--- Encode ---')
         z = self.encode(x)
-        # print('--- Decode ---')
         y = self.decode(z)
 
         return y
@@ -368,11 +366,8 @@ class PGAE(nn.Module):
         else:
             z = self.encoders[self.steps - self.step](z, rgb_input=True)
 
-        # print(z.shape)
-
         for i in range(self.steps - self.step + 1, self.steps):
             z = self.encoders[i](z)
-            # print(z.shape)
 
         return z
 
@@ -380,11 +375,9 @@ class PGAE(nn.Module):
         y = z
 
         for i in range(self.step - 1):
-            # print(y.shape)
             y = self.decoders[i](y)
 
         # Merge if at least 2 layers
-        # print(y.shape)
         if self.step != 1:
             y_rgb_prev = self.decoders[self.step - 2].to_rgb(y)
             y_rgb_prev = F.interpolate(y_rgb_prev, scale_factor=2)
